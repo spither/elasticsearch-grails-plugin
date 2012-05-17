@@ -62,10 +62,15 @@ public class DomainClassUnmarshaller {
 
             GrailsDomainClassProperty identifier = scm.getDomainClass().getIdentifier();
             Object id = typeConverter.convertIfNecessary(hit.id(), identifier.getType());
+            Object instance = scm.getDomainClass().load(id);
+
+            /*
             GroovyObject instance = (GroovyObject) scm.getDomainClass().newInstance();
             instance.setProperty(identifier.getName(), id);
+            */
 
             /*def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping*/
+            /*
             Map rebuiltProperties = new HashMap();
             for(Map.Entry<String, Object> entry : hit.getSource().entrySet()) {
                 unmarshallingContext.getUnmarshallingStack().push(entry.getKey());
@@ -76,6 +81,7 @@ public class DomainClassUnmarshaller {
             }
             // todo manage read-only transient properties...
             bind.invoke(instance, "bind", new Object[] { instance, rebuiltProperties });
+            */
 
             results.add(instance);
         }
@@ -246,19 +252,30 @@ public class DomainClassUnmarshaller {
         String indexName = elasticSearchContextHolder.getMappingContext(domainClass).getIndexName();
         String name = elasticSearchContextHolder.getMappingContext(domainClass).getElasticTypeName();
         // A property value is expected to be a map in the form [id:ident]
-        Object id = data.get("id");
+        Object providedId = data.get("id");
+        GrailsDomainClassProperty identifier = domainClass.getIdentifier();
+        Object id = typeConverter.convertIfNecessary(providedId, identifier.getType());
+        Object instance = domainClass.load(id);
+        //GroovyObject instance = (GroovyObject) domainClass.newInstance();
+        //instance.setProperty(identifier.getName(), id);
+        return instance;
+        /* This causes infinite loops far too easily
         GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
                 .operationThreaded(false)
                 .type(name)
                 .id(typeConverter.convertIfNecessary(id, String.class)))
                 .actionGet();
         return unmarshallDomain(domainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
+        */
     }
 
 
     private Object unmarshallDomain(GrailsDomainClass domainClass, Object providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.getIdentifier();
         Object id = typeConverter.convertIfNecessary(providedId, identifier.getType());
+        Object instance = domainClass.load(id);
+        return instance;
+        /*
         GroovyObject instance = (GroovyObject) domainClass.newInstance();
         instance.setProperty(identifier.getName(), id);
         for(Map.Entry<String, Object> entry : data.entrySet()) {
@@ -270,6 +287,7 @@ public class DomainClassUnmarshaller {
             }
         }
         return instance;
+        */
     }
 
     public void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
