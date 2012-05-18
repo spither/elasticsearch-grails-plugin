@@ -62,7 +62,7 @@ public class DomainClassUnmarshaller {
 
             GrailsDomainClassProperty identifier = scm.getDomainClass().getIdentifier();
             Object id = typeConverter.convertIfNecessary(hit.id(), identifier.getType());
-            Object instance = scm.getDomainClass().load(id);
+            Object instance = scm.getDomainClass().getMetaClass().invokeStaticMethod(scm.getDomainClass().getClazz(), "load", new Object[] { id });
 
             /*
             GroovyObject instance = (GroovyObject) scm.getDomainClass().newInstance();
@@ -255,7 +255,7 @@ public class DomainClassUnmarshaller {
         Object providedId = data.get("id");
         GrailsDomainClassProperty identifier = domainClass.getIdentifier();
         Object id = typeConverter.convertIfNecessary(providedId, identifier.getType());
-        Object instance = domainClass.load(id);
+        Object instance = domainClass.getMetaClass().invokeStaticMethod(domainClass.getClazz(), "load", new Object[] { id });
         //GroovyObject instance = (GroovyObject) domainClass.newInstance();
         //instance.setProperty(identifier.getName(), id);
         return instance;
@@ -273,7 +273,7 @@ public class DomainClassUnmarshaller {
     private Object unmarshallDomain(GrailsDomainClass domainClass, Object providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.getIdentifier();
         Object id = typeConverter.convertIfNecessary(providedId, identifier.getType());
-        Object instance = domainClass.load(id);
+        Object instance = domainClass.getMetaClass().invokeStaticMethod(domainClass.getClazz(), "load", new Object[] { id });
         return instance;
         /*
         GroovyObject instance = (GroovyObject) domainClass.newInstance();
